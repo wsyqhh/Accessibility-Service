@@ -138,6 +138,49 @@ class OrbAccessibilityService : AccessibilityService() {
             newFixedLengthResponse(Response.Status.OK, "application/json", out.toString())
           }
 
+          session.method == Method.POST && session.uri == "/tap" -> {
+            val params = session.parameters
+            val xs = params["x"]?.firstOrNull()
+            val ys = params["y"]?.firstOrNull()
+            val x = xs?.toIntOrNull()
+            val y = ys?.toIntOrNull()
+            if (x == null || y == null) {
+              newFixedLengthResponse(Response.Status.BAD_REQUEST, "text/plain", "missing x/y")
+            } else {
+              val ok = Shell.su("input tap  ")
+              newFixedLengthResponse(Response.Status.OK, "application/json", JSONObject(mapOf("ok" to ok)).toString())
+            }
+          }
+
+          session.method == Method.POST && session.uri == "/swipe" -> {
+            val p = session.parameters
+            fun i(name: String) = p[name]?.firstOrNull()?.toIntOrNull()
+            val x1=i("x1"); val y1=i("y1"); val x2=i("x2"); val y2=i("y2"); val dur=i("dur") ?: 300
+            if (x1==null||y1==null||x2==null||y2==null) {
+              newFixedLengthResponse(Response.Status.BAD_REQUEST, "text/plain", "missing x1/y1/x2/y2")
+            } else {
+              val ok = Shell.su("input swipe     ")
+              newFixedLengthResponse(Response.Status.OK, "application/json", JSONObject(mapOf("ok" to ok)).toString())
+            }
+          }
+
+          session.method == Method.POST && session.uri == "/key" -> {
+            val name = session.parameters["name"]?.firstOrNull()?.lowercase()
+            val keycode = when (name) {
+              "home" -> "KEYCODE_HOME"
+              "back" -> "KEYCODE_BACK"
+              "enter" -> "KEYCODE_ENTER"
+              "menu" -> "KEYCODE_MENU"
+              else -> null
+            }
+            if (keycode == null) {
+              newFixedLengthResponse(Response.Status.BAD_REQUEST, "text/plain", "bad name")
+            } else {
+              val ok = Shell.su("input keyevent ")
+              newFixedLengthResponse(Response.Status.OK, "application/json", JSONObject(mapOf("ok" to ok)).toString())
+            }
+          }
+
           session.method == Method.POST && session.uri == "/click" -> {
             val params = session.parameters
             val text = params["text"]?.firstOrNull()?.trim()
@@ -160,5 +203,20 @@ class OrbAccessibilityService : AccessibilityService() {
 
   companion object {
     private const val TAG = "OrbA11y"
+  }
+}
+
+private object Shell {
+  /** Run a command through `su -c`. Returns true on exit code 0. */
+  fun su(cmd: String): Boolean {
+    return try {
+      val p = ProcessBuilder("su", "-c", cmd)
+        .redirectErrorStream(true)
+        .start()
+      val code = p.waitFor()
+      code == 0
+    } catch (_: Throwable) {
+      false
+    }
   }
 }
