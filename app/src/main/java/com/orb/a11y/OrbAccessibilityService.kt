@@ -7,7 +7,6 @@ import android.view.accessibility.AccessibilityNodeInfo
 import fi.iki.elonen.NanoHTTPD
 import org.json.JSONArray
 import org.json.JSONObject
-import java.net.InetSocketAddress
 import java.util.concurrent.atomic.AtomicReference
 
 /**
@@ -98,7 +97,7 @@ class OrbAccessibilityService : AccessibilityService() {
     val getRoot: () -> AccessibilityNodeInfo?,
     val getRev: () -> Long,
     val clickByText: (String) -> Boolean
-  ) : NanoHTTPD(InetSocketAddress(bindHost, port)) {
+  ) : NanoHTTPD(bindHost, port) {
 
     override fun serve(session: IHTTPSession): Response {
       return try {
