@@ -23,7 +23,7 @@ adb install -r app/build/outputs/apk/debug/app-debug.apk
 
 ## Enable accessibility
 
-Android Settings → Accessibility → **Orb A11y HTTP** → Enable.
+Android Settings → Accessibility → **Accessibility Service** → Enable.
 
 ## Test on-device
 
